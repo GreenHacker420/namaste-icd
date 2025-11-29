@@ -39,7 +39,12 @@ export const createApp = () => {
   // Core Middleware
   // ============================================================================
 
-  app.use('*', cors());
+  app.use('*', cors({
+    origin: ['https://namaste-icd-front.vercel.app', 'http://localhost:3000'],
+    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization'],
+    credentials: true,
+  }));
   app.use('*', honoLogger());
   app.use('*', prettyJSON());
 
