@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { serve } from '@hono/node-server';
+import { serveStatic } from '@hono/node-server/serve-static';
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { logger as honoLogger } from 'hono/logger';
@@ -31,13 +32,13 @@ import { createFrontendRoutes } from './routes/frontend.js';
  * Create and configure Hono application
  * Functional approach - factory function for app creation
  */
-const createApp = () => {
+export const createApp = () => {
   const app = new Hono();
 
   // ============================================================================
   // Core Middleware
   // ============================================================================
-  
+
   app.use('*', cors());
   app.use('*', honoLogger());
   app.use('*', prettyJSON());
@@ -64,7 +65,7 @@ const createApp = () => {
   // ============================================================================
   // Rate Limiting
   // ============================================================================
-  
+
   // Apply rate limits to specific routes
   app.use('/api/v1/mapping', rateLimitMiddleware.mapping);
   app.use('/api/v1/mapping/batch/*', rateLimitMiddleware.batch);
@@ -76,8 +77,8 @@ const createApp = () => {
   // ============================================================================
 
   app.onError((err, c) => {
-    logger.error({ 
-      error: err.message, 
+    logger.error({
+      error: err.message,
       stack: err.stack,
       requestId: c.get('requestId'),
     }, 'Unhandled error');
@@ -103,7 +104,7 @@ const createApp = () => {
 
   // Health & Monitoring
   app.route('/health', createHealthRoutes());
-  
+
   // Prometheus metrics endpoint
   app.get('/metrics', (c) => {
     c.header('Content-Type', 'text/plain; version=0.0.4');
@@ -112,14 +113,14 @@ const createApp = () => {
 
   // FHIR R4 endpoints
   app.route('/fhir', createFhirRoutes());
-  
+
   // Core API
   app.route('/api/v1/mapping', createMappingRoutes());
   app.route('/api/v1/autocomplete', createAutocompleteRoutes());
-  
+
   // Admin endpoints
   app.route('/api/v1/admin', createAdminRoutes());
-  
+
   // Frontend-optimized endpoints
   app.route('/api/v1/frontend', createFrontendRoutes());
 
@@ -163,6 +164,15 @@ const createApp = () => {
         'Audit logging (DISHA compliant)',
       ],
     });
+
+    // ============================================================================
+    // Static Files (Frontend)
+    // ============================================================================
+
+    app.use('/*', serveStatic({ root: './public' }));
+
+    // SPA Fallback: Serve index.html for any non-API route not found above
+    app.get('*', serveStatic({ path: './public/index.html' }));
   });
 
   return app;
@@ -203,7 +213,7 @@ const startServer = async () => {
     fetch: app.fetch,
     port: config.port,
   }, (info) => {
-    logger.info({ 
+    logger.info({
       port: info.port,
       address: info.address,
     }, `🚀 NAMASTE-ICD API running at http://localhost:${info.port}`);

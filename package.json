@@ -1,0 +1,11 @@
+{
+    "name": "namaste-monorepo",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "vercel-build": "cd namaste-ui && npm install && npm run build && cd ../namaste-api && npm install && rm -rf public && mkdir public && cp -r ../namaste-ui/out/* public/"
+    },
+    "engines": {
+        "node": ">=22.0.0"
+    }
+}

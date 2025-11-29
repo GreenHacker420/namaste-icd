@@ -105,35 +105,22 @@ npm run dev
 ```
 The application will be available at `http://localhost:3001`.
 
-## 📦 Deployment
+## 📦 Deployment (Monorepo)
 
-### Frontend (Vercel)
-The easiest way to deploy the Next.js frontend is via Vercel.
+This project is configured for a unified Vercel deployment where the backend serves the frontend.
 
-1. Push your code to a Git repository (GitHub/GitLab).
+1. Push the entire repository to GitHub.
 2. Import the project into Vercel.
-3. Select the `namaste-ui` directory as the Root Directory.
-4. Add environment variables (e.g., `NEXT_PUBLIC_API_URL`).
-5. Click **Deploy**.
+3. Set the **Root Directory** to `./` (the root of the repo).
+4. **Build Command**: `npm run vercel-build`
+5. **Output Directory**: `namaste-api`
+6. Add Environment Variables:
+   - `DATABASE_URL`: Connection string to your managed Postgres.
+   - `GOOGLE_API_KEY`: For AI features.
+   - `NEXT_PUBLIC_API_URL`: Set to `/api` (since frontend is served by backend).
+7. Deploy.
 
-### Backend (Render / Railway)
-For the Node.js backend, platforms like Render or Railway are recommended.
-
-**Render:**
-1. Create a new **Web Service**.
-2. Connect your Git repository.
-3. Set the Root Directory to `namaste-api`.
-4. Set the Build Command: `npm install && npm run db:generate`.
-5. Set the Start Command: `npm start`.
-6. Add environment variables (`DATABASE_URL`, `GOOGLE_API_KEY`, etc.).
-
-### Database
-Use a managed PostgreSQL provider:
-- **Supabase**: Excellent free tier.
-- **Neon**: Serverless Postgres.
-- **Render/Railway**: Built-in database services.
-
-Ensure your `DATABASE_URL` in the backend environment variables points to this managed instance.
+*Note: The frontend is built as a static export and served by the Hono backend from the `public` directory.*
 
 ## 📚 Documentation
 For more detailed information about the system architecture, please refer to [architecture.md](./architecture.md).

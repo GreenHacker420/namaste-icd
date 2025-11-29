@@ -1,0 +1,17 @@
+{
+    "version": 2,
+    "buildCommand": "npm run vercel-build",
+    "outputDirectory": "namaste-api",
+    "builds": [
+        {
+            "src": "namaste-api/api/index.js",
+            "use": "@vercel/node"
+        }
+    ],
+    "routes": [
+        {
+            "src": "/(.*)",
+            "dest": "/namaste-api/api/index.js"
+        }
+    ]
+}

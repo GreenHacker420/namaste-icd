@@ -90,6 +90,5 @@ graph TD
 
 ## Deployment Architecture
 
-- **Frontend**: Deployed on Vercel for global edge distribution and serverless rendering.
-- **Backend**: Containerized (Docker) and deployed on a platform like Render, Railway, or Google Cloud Run.
-- **Database**: Managed PostgreSQL instance (e.g., Supabase, Neon, or Cloud SQL) with `pgvector` support (if using DB for vectors).
+- **Unified Deployment**: The **Frontend** is built as a static export and served by the **Backend** (Hono) on **Vercel**.
+- **Database**: Managed PostgreSQL (e.g., Supabase, Neon) accessible via connection string.
