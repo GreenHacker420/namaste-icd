@@ -230,8 +230,11 @@ const startServer = async () => {
   process.on('SIGTERM', () => shutdown('SIGTERM'));
 };
 
-// Start the server
-startServer().catch((error) => {
-  logger.error({ error: error.message }, 'Failed to start server');
-  process.exit(1);
-});
+// Start the server if this file is run directly
+import { fileURLToPath } from 'url';
+if (process.argv[1] === fileURLToPath(import.meta.url)) {
+  startServer().catch((error) => {
+    logger.error({ error: error.message }, 'Failed to start server');
+    process.exit(1);
+  });
+}

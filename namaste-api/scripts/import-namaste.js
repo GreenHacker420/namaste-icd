@@ -12,7 +12,8 @@ import pg from 'pg';
  */
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const BACKEND_DATA_DIR = join(__dirname, '../../backend/data');
+const BACKEND_DATA_DIR = join(__dirname, '../../');
+console.log(BACKEND_DATA_DIR);
 
 // Create PostgreSQL pool and Prisma client with adapter
 const pool = new pg.Pool({
@@ -142,3 +143,4 @@ main()
     await prisma.$disconnect();
     await pool.end();
   });
+

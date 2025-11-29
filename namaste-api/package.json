@@ -15,7 +15,8 @@
     "db:studio": "npx prisma studio",
     "import:namaste": "node scripts/import-namaste.js",
     "fetch:tm2": "node scripts/fetch-tm2.js",
-    "seed": "node scripts/seed.js"
+    "seed": "node scripts/seed.js",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
     "@hono/node-server": "^1.19.6",
