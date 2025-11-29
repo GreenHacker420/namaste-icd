@@ -1,0 +1,156 @@
+// NAMASTE-ICD Prisma Schema
+// PostgreSQL database for terminology mapping
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// NAMASTE Morbidity Codes (Ayurveda, Siddha, Unani)
+model NamasteCode {
+  id              String   @id @default(uuid())
+  code            String
+  system          System
+  term            String
+  termNormalized  String?  @map("term_normalized")
+  nativeScript    String?  @map("native_script")
+  shortDefinition String?  @map("short_definition")
+  longDefinition  String?  @map("long_definition")
+  englishName     String?  @map("english_name")
+  searchableText  String?  @map("searchable_text")
+  metadata        Json     @default("{}")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  mappings Mapping[]
+
+  @@unique([code, system])
+  @@index([code])
+  @@index([system])
+  @@map("namaste_codes")
+}
+
+// WHO ICD-11 TM2 Codes
+model Tm2Code {
+  id                 String   @id @default(uuid())
+  code               String   @unique
+  title              String
+  definition         String?
+  category           String?
+  parentCode         String?  @map("parent_code")
+  synonyms           String[]
+  inclusions         String[]
+  exclusions         String[]
+  traditionalSystems String[] @map("traditional_systems")
+  metadata           Json     @default("{}")
+  createdAt          DateTime @default(now()) @map("created_at")
+  updatedAt          DateTime @updatedAt @map("updated_at")
+
+  // Relations
+  mappings Mapping[]
+
+  @@index([code])
+  @@index([category])
+  @@map("tm2_codes")
+}
+
+// NAMASTE to TM2 Mappings
+model Mapping {
+  id               String           @id @default(uuid())
+  namasteCodeId    String           @map("namaste_code_id")
+  tm2CodeId        String           @map("tm2_code_id")
+  equivalence      Equivalence
+  confidence       Float
+  mappingSource    MappingSource    @map("mapping_source")
+  validationStatus ValidationStatus @default(PENDING) @map("validation_status")
+  validatedBy      String?          @map("validated_by")
+  validatedAt      DateTime?        @map("validated_at")
+  reasoning        String?
+  metadata         Json             @default("{}")
+  createdAt        DateTime         @default(now()) @map("created_at")
+  updatedAt        DateTime         @updatedAt @map("updated_at")
+
+  // Relations
+  namasteCode NamasteCode @relation(fields: [namasteCodeId], references: [id])
+  tm2Code     Tm2Code     @relation(fields: [tm2CodeId], references: [id])
+
+  @@unique([namasteCodeId, tm2CodeId])
+  @@index([namasteCodeId])
+  @@index([tm2CodeId])
+  @@index([confidence(sort: Desc)])
+  @@map("mappings")
+}
+
+// Embeddings for Vector Search
+model Embedding {
+  id         String       @id @default(uuid())
+  sourceType SourceType   @map("source_type")
+  sourceCode String       @map("source_code")
+  sourceSystem System?    @map("source_system")
+  embedding  Float[]
+  modelName  String       @map("model_name")
+  createdAt  DateTime     @default(now()) @map("created_at")
+
+  @@index([sourceType, sourceCode])
+  @@map("embeddings")
+}
+
+// Audit Logs
+model AuditLog {
+  id             String   @id @default(uuid())
+  action         String
+  resourceType   String   @map("resource_type")
+  resourceId     String?  @map("resource_id")
+  userId         String?  @map("user_id")
+  requestId      String?  @map("request_id")
+  ipAddress      String?  @map("ip_address")
+  userAgent      String?  @map("user_agent")
+  requestBody    Json?    @map("request_body")
+  responseStatus Int?     @map("response_status")
+  durationMs     Int?     @map("duration_ms")
+  metadata       Json     @default("{}")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([createdAt(sort: Desc)])
+  @@index([action])
+  @@map("audit_logs")
+}
+
+// Enums
+enum System {
+  AYURVEDA  @map("ayurveda")
+  SIDDHA    @map("siddha")
+  UNANI     @map("unani")
+}
+
+enum Equivalence {
+  EQUIVALENT @map("equivalent")
+  WIDER      @map("wider")
+  NARROWER   @map("narrower")
+  INEXACT    @map("inexact")
+  UNMATCHED  @map("unmatched")
+  DISJOINT   @map("disjoint")
+}
+
+enum MappingSource {
+  DETERMINISTIC   @map("deterministic")
+  SEMANTIC        @map("semantic")
+  AI_VALIDATED    @map("ai_validated")
+  HUMAN_VALIDATED @map("human_validated")
+}
+
+enum ValidationStatus {
+  PENDING      @map("pending")
+  APPROVED     @map("approved")
+  REJECTED     @map("rejected")
+  NEEDS_REVIEW @map("needs_review")
+}
+
+enum SourceType {
+  NAMASTE @map("namaste")
+  TM2     @map("tm2")
+}
