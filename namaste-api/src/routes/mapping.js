@@ -100,9 +100,18 @@ export const createMappingRoutes = () => {
         }, 404);
       }
 
-      // Invoke LangGraph mapping workflow
+      // Invoke LangGraph mapping workflow with timeout
       logger.info({ code, system }, 'Invoking AI mapping workflow');
-      const mappingResult = await mapNamasteToTm2(namasteCode);
+      
+      // Set timeout to 25 seconds (Vercel free tier has 10s, but we'll use 25s for safety)
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Mapping timeout - please try async endpoint')), 25000)
+      );
+      
+      const mappingResult = await Promise.race([
+        mapNamasteToTm2(namasteCode),
+        timeoutPromise
+      ]);
 
       // Store the mapping if successful
       if (mappingResult.success && mappingResult.tm2Code) {

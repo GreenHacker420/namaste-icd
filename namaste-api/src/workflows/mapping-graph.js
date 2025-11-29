@@ -258,47 +258,25 @@ const aiValidationNode = async (state) => {
   
   try {
     // Use Flash for speed and no rate limits (Pro has strict quotas)
-    const model = createGeminiFlash();
+    // Set lower max tokens for faster response
+    const model = createGeminiFlash({ maxTokens: 1024 });
     
-    const prompt = `You are a medical terminology expert specializing in traditional medicine systems.
+    const prompt = `Medical terminology expert: Map NAMASTE to ICD-11 TM2.
 
-Task: Evaluate the mapping between an Indian traditional medicine code (NAMASTE) and ICD-11 TM2 candidates.
-
-NAMASTE Code:
-- Code: ${namasteCode.code}
-- System: ${namasteCode.system}
-- Term: ${namasteCode.term}
-- English Name: ${namasteCode.englishName || 'N/A'}
-- Definition: ${namasteCode.shortDefinition || 'N/A'}
+NAMASTE: ${namasteCode.code} (${namasteCode.system})
+Term: ${namasteCode.term}
+Definition: ${namasteCode.shortDefinition || namasteCode.englishName || 'N/A'}
 
 TM2 Candidates:
-${tm2Candidates.slice(0, 5).map((c, i) => `
-${i + 1}. Code: ${c.code}
-   Title: ${c.title}
-   Definition: ${c.definition || 'N/A'}
-   Category: ${c.category || 'N/A'}
-`).join('\n')}
+${tm2Candidates.slice(0, 3).map((c, i) => `${i + 1}. ${c.code}: ${c.title}${c.definition ? ' - ' + c.definition.substring(0, 100) : ''}`).join('\n')}
 
-Instructions:
-1. Analyze the semantic similarity between the NAMASTE code and each TM2 candidate
-2. Consider the medical/clinical meaning, not just lexical similarity
-3. Select the best matching TM2 code (or none if no good match)
-4. Determine the equivalence type based on FHIR ConceptMap equivalence codes
-
-Respond in JSON format:
+Respond JSON only:
 {
-  "selectedCode": "TM2 code or null",
+  "selectedCode": "best TM2 code or null",
   "confidence": 0.0-1.0,
   "equivalence": "EQUIVALENT|WIDER|NARROWER|INEXACT|UNMATCHED",
-  "reasoning": "Brief explanation of the mapping decision"
-}
-
-Equivalence definitions:
-- EQUIVALENT: Exact semantic match
-- WIDER: TM2 concept is broader than NAMASTE concept  
-- NARROWER: TM2 concept is more specific than NAMASTE concept
-- INEXACT: Related but not equivalent
-- UNMATCHED: No suitable match found`;
+  "reasoning": "Brief reason"
+}`;
 
     const response = await model.invoke(prompt);
     const content = response.content;
